@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch: {{ course['course_name'] }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Added FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        .watch-container { 
+            display: flex; 
+            gap: 20px; 
+            padding: 20px; 
+            background: #f9f9f9; 
+            min-height: 90vh;
+        }
+        .main-player { flex: 3; }
+        .playlist { 
+            flex: 1; 
+            background: #fff; 
+            padding: 15px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        video { 
+            width: 100%; 
+            border-radius: 8px; 
+            background: #000; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .lecture-link { 
+            display: block; 
+            padding: 12px; 
+            border-bottom: 1px solid #eee; 
+            text-decoration: none; 
+            color: #333; 
+            transition: 0.2s;
+        }
+        .lecture-link:hover { background: #f0f0f0; }
+        .active-lecture { 
+            background: #e3f2fd; 
+            border-left: 5px solid #2196f3; 
+            font-weight: bold; 
+            color: #0d47a1;
+        }
+        /* Notes Styling */
+        .notes-section {
+            background: #f8fafc; 
+            padding: 20px; 
+            border-radius: 12px; 
+            border-left: 5px solid #2ecc71; 
+            margin-top: 25px;
+        }
+        .note-item {
+            background: white; 
+            padding: 12px; 
+            border-radius: 8px; 
+            margin-bottom: 10px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .btn-download {
+            background: #2ecc71; 
+            color: white; 
+            padding: 6px 15px; 
+            border-radius: 5px; 
+            text-decoration: none; 
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .btn-download:hover { background: #27ae60; }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <div style="background: #2c3e50; color: white; padding: 15px; display: flex; align-items: center;">
+        <a href="{{ url_for('student_dashboard') }}" style="color: white; text-decoration: none; font-weight: bold;">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        <h2 style="margin: 0 0 0 20px;">{{ course['course_name'] }}</h2>
+    </div>
+
+    <div class="watch-container">
+        
+        <!-- Left Side: Video Player and Notes -->
+        <div class="main-player">
+            {% if selected_video %}
+                <video controls autoplay>
+                    <source src="{{ url_for('static', filename='uploads/videos/' + selected_video['file_path']) }}" type="video/mp4">
+                    Your browser does not support HTML5 video.
+                </video>
+                
+                <h2 style="margin-top: 20px;">Now Playing: {{ selected_video['title'] }}</h2>
+                <p style="color: #666;">Course: {{ course['course_name'] }}</p>
+            {% else %}
+                <div style="padding: 50px; text-align: center; background: #ddd; border-radius: 8px;">
+                    <h3>Please select a lecture to start watching</h3>
+                </div>
+            {% endif %}
+
+            <!-- STUDY MATERIALS (Shown for the whole course) -->
+            <div class="notes-section">
+                <h4 style="margin-bottom: 15px;"><i class="fas fa-book"></i> Study Materials & Notes</h4>
+                
+                {% if notes %}
+                    <ul style="list-style: none; padding: 0;">
+                        {% for note in notes %}
+                        <li class="note-item">
+                            <div>
+                                <i class="far fa-file-pdf" style="color: #e74c3c; margin-right: 10px; font-size: 1.2rem;"></i>
+                                <strong>{{ note['title'] }}</strong>
+                            </div>
+                            <a href="{{ url_for('static', filename='uploads/notes/' + note['file_path']) }}" 
+                               target="_blank" 
+                               class="btn-download">
+                               <i class="fas fa-download"></i> View/Download
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p style="color: #64748b; font-style: italic;">No specific notes have been uploaded for this course yet.</p>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <h3>Description</h3>
+                <p>{{ course['description'] }}</p>
+            </div>
+        </div>
+
+        <!-- Right Side: Playlist -->
+        <div class="playlist">
+            <h3 style="border-bottom: 2px solid #2c3e50; padding-bottom: 10px; margin-bottom: 15px;">
+                <i class="fas fa-list"></i> Course Content
+            </h3>
+            {% for video in videos %}
+                <a href="{{ url_for('watch_course', course_id=course['id'], video_id=video['id']) }}" 
+                   class="lecture-link {% if selected_video and video['id'] == selected_video['id'] %}active-lecture{% endif %}">
+                    <i class="fas fa-play-circle"></i> {{ video['title'] }}
+                </a>
+            {% else %}
+                <p style="padding: 10px; color: #888;">No lectures uploaded yet.</p>
+            {% endfor %}
+        </div>
+
+    </div>
+    
+</body>
+</html>

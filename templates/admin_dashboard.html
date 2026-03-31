@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Using the same Premium CSS for consistency -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <title>Admin Dashboard | EduStream</title>
+    <style>
+        /* Local overrides to maintain your specific table layout */
+        .upload-form-mini {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 8px;
+            background: #fdfdfd;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .upload-form-mini input {
+            padding: 6px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        .upload-form-mini label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #555;
+        }
+        /* Style for the internal upload buttons */
+        .btn-upload {
+            padding: 5px;
+            font-size: 11px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+        }
+        .btn-video { background: #4a90e2; }
+        .btn-notes { background: #2ecc71; }
+
+        .btn-danger {
+            background: #ff4757;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        .btn-danger:hover { background: #ff6b81; }
+        
+        /* Table Styling */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; border-radius: 10px; overflow: hidden; }
+        th { background: #f1f5f9; padding: 15px; text-align: left; font-size: 14px; color: #475569; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    </style>
+</head>
+<body class="dashboard-body">
+
+    <div class="admin-wrapper" style="display: flex; width: 100%;">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="sidebar-logo">
+                <i class="fas fa-user-shield"></i>
+                <span>Admin Panel</span>
+            </div>
+            <ul class="sidebar-nav" style="list-style: none;">
+                <li><a href="#courses"><i class="fas fa-book"></i> Manage Courses</a></li>
+                <li><a href="#students"><i class="fas fa-users"></i> View Students</a></li>
+                <li><a href="#enrollments"><i class="fas fa-receipt"></i> Enrollments</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="btn-danger" style="display: block; text-align: center; margin-top: 50px;">Logout</a>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT AREA -->
+        <div class="main-content" style="flex: 1; padding: 30px; margin-left: 280px;">
+            
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="flash-toast {{ category }}" style="margin-bottom: 20px; padding: 15px; border-radius: 10px; background: #e0f2fe; color: #0369a1; border-left: 5px solid #0ea5e9;">
+                      {{ message }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <!-- Management Section -->
+            <div id="courses">
+                <div style="display: flex; gap: 30px;">
+                    <!-- Add Course Form -->
+                    <div style="flex: 1;">
+                        <h3 class="section-title">Add New Course</h3>
+                        <div class="card" style="background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+                            <form method="POST" action="{{ url_for('add_course') }}">
+                                <label style="font-weight: 600; display: block; margin-bottom: 5px;">Course Title</label>
+                                <input type="text" name="course_name" placeholder="e.g. Python Masterclass" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 15px;">
+                                
+                                <label style="font-weight: 600; display: block; margin-bottom: 5px;">Description</label>
+                                <textarea name="description" rows="3" placeholder="Course details..." required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 15px;"></textarea>
+                                
+                                <label style="font-weight: 600; display: block; margin-bottom: 5px;">Course Price (₹)</label>
+                                <input type="number" name="price" step="1" placeholder="999" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 20px;">
+                                
+                                <button type="submit" class="btn-primary-gradient" style="width: 100%; border: none; cursor: pointer; padding: 15px; border-radius: 12px; color: white; font-weight: bold;">Create Course</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Course List & Uploads -->
+                    <div style="flex: 2;">
+                        <h3 class="section-title">Course Management</h3>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Course</th>
+                                        <th>Price</th>
+                                        <th style="width: 250px;">Upload Content</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for course in courses %}
+                                    <tr>
+                                        <td><strong>{{ course['course_name'] }}</strong></td>
+                                        <td><span class="price-pill">₹{{ course['price'] }}</span></td>
+                                        <td>
+                                            <!-- Video Upload Form -->
+                                            <form action="{{ url_for('upload_video', course_id=course['id']) }}" 
+                                                  method="POST" 
+                                                  enctype="multipart/form-data" 
+                                                  class="upload-form-mini">
+                                                <label><i class="fas fa-video"></i> Video (.mp4)</label>
+                                                <input type="text" name="video_title" placeholder="Lecture Title" required>
+                                                <input type="file" name="video_file" accept="video/mp4" required>
+                                                <button type="submit" class="btn-upload btn-video">Upload Video</button>
+                                            </form>
+
+                                            <!-- NEW: Notes Upload Form -->
+                                            <form action="{{ url_for('upload_note', course_id=course['id']) }}" 
+                                                  method="POST" 
+                                                  enctype="multipart/form-data" 
+                                                  class="upload-form-mini" style="border-top: 2px solid #eee; padding-top: 10px;">
+                                                <label><i class="fas fa-file-pdf"></i> Study Notes (.pdf)</label>
+                                                <input type="text" name="note_title" placeholder="Note Title" required>
+                                                <input type="file" name="note_file" accept=".pdf,.doc,.docx" required>
+                                                <button type="submit" class="btn-upload btn-notes">Upload Note</button>
+                                            </form>
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('delete_course', id=course['id']) }}" 
+                                               class="btn-danger" 
+                                               onclick="return confirm('Delete course?')">Delete</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr style="margin: 50px 0; border: 0; border-top: 1px solid #e2e8f0;">
+
+            <!-- Registered Students Section -->
+            <div id="students">
+                <h3 class="section-title">Students Registry</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Mobile</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td>#{{ student['id'] }}</td>
+                                <td>{{ student['name'] }}</td>
+                                <td>{{ student['email'] }}</td>
+                                <td>{{ student['mobile'] or 'N/A' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <br><br>
+
+            <!-- Course Enrollments Section -->
+            <div id="enrollments">
+                <h3 class="section-title">Recent Sales & Enrollments</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student Name</th>
+                                <th>Course</th>
+                                <th>Amount Paid</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in enrollments %}
+                            <tr>
+                                <td>{{ entry['name'] }}</td>
+                                <td>{{ entry['course_name'] }}</td>
+                                <td style="color: #16a34a; font-weight: bold;">₹{{ entry['amount'] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div> 
+    </div>
+
+    <!-- Adding FontAwesome for Icons -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
+</html>

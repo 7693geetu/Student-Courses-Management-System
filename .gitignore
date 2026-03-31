@@ -1,0 +1,29 @@
+# Virtual Environment (VERY IMPORTANT)
+venv/
+env/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database
+*.db
+*.sqlite3
+
+# Environment variables (secrets)
+.env
+
+# VS Code settings
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Uploads folder (optional if contains user files)
+static/uploads/

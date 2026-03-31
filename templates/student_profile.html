@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Adding FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>My Profile | EduStream</title>
+    <style>
+        .profile-container { display: flex; gap: 30px; margin-top: 30px; }
+        .profile-card { flex: 1; background: white; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .edit-section { flex: 2; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .profile-img { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #f1f5f9; margin-bottom: 15px; }
+        .profile-details { text-align: left; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
+        .profile-details p { margin-bottom: 10px; color: #475569; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #1e293b; margin-top: 15px; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; }
+        .btn-save { background: #27ae60; color: white; border: none; padding: 12px; cursor: pointer; margin-top: 20px; width: 100%; border-radius: 8px; font-weight: bold; }
+        .btn-upload { padding: 5px 15px; background: #34495e; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.8rem; margin-top: 10px; }
+        
+        /* Flash Message Styling - Corrected to avoid VS Code Errors */
+        .flash {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .flash.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .flash.danger, .flash.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <nav style="background: #2c3e50; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; color: white;">
+        <div class="brand" style="font-weight: bold; font-size: 1.5rem;">EduStream Portal</div>
+        <div style="display: flex; gap: 20px;">
+            <a href="{{ url_for('student_dashboard') }}" style="color: white; text-decoration: none;">Dashboard</a>
+            <a href="{{ url_for('profile') }}" style="color: #3498db; text-decoration: none; font-weight: bold;">My Profile</a>
+            <a href="{{ url_for('logout') }}" style="color: #e74c3c; text-decoration: none;">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 1000px; margin: 0 auto; padding: 20px;">
+        <!-- Flash Messages - FIXED: Removed inline style to stop VS Code errors -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, m in messages %}
+                    <div class="flash {{ category }}">
+                        {{ m }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="profile-container">
+            <!-- LEFT SIDE: View Profile Card -->
+            <div class="profile-card">
+                <!-- PHOTO LOGIC -->
+                {% if student['photo'] and student['photo'] != 'default.png' %}
+                    <img src="{{ url_for('static', filename='uploads/' + student['photo']) }}" class="profile-img" alt="Profile Photo">
+                {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ student['name'] }}&background=random&size=150" class="profile-img" alt="Default Avatar">
+                {% endif %}
+                
+                <h2 style="margin-bottom: 5px;">{{ student['name'] }}</h2>
+                <p style="color: #64748b; font-size: 0.9rem;">Student ID: #{{ student['id'] }}</p>
+                
+                <!-- Photo Upload Form -->
+                <form action="{{ url_for('upload_photo') }}" method="POST" enctype="multipart/form-data" style="margin-top: 20px;">
+                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">Change Profile Picture:</p>
+                    <input type="file" name="photo" style="font-size: 0.7rem;" required>
+                    <button type="submit" class="btn-upload">Update Photo</button>
+                </form>
+
+                <div class="profile-details">
+                    <p><i class="fas fa-envelope" style="width: 20px;"></i> <b>Email:</b> {{ student['email'] }}</p>
+                    <p><i class="fas fa-phone" style="width: 20px;"></i> <b>Mobile:</b> {{ student['mobile'] or 'Not set' }}</p>
+                    <p><i class="fas fa-university" style="width: 20px;"></i> <b>College:</b> {{ student['college'] or 'Not set' }}</p>
+                    <p><i class="fas fa-map-marker-alt" style="width: 20px;"></i> <b>Address:</b> {{ student['address'] or 'Not set' }}</p>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDE: Edit Profile Form -->
+            <div class="edit-section">
+                <h3 style="border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 10px;">Update Personal Details</h3>
+                <form action="{{ url_for('edit_profile') }}" method="POST">
+                    <label>Full Name</label>
+                    <input type="text" name="name" value="{{ student['name'] }}" required>
+                    
+                    <label>Mobile Number</label>
+                    <input type="text" name="mobile" value="{{ student['mobile'] or '' }}" placeholder="e.g. 9876543210">
+                    
+                    <label>College Name</label>
+                    <input type="text" name="college" value="{{ student['college'] or '' }}" placeholder="Enter your college name">
+                    
+                    <label>Address</label>
+                    <textarea name="address" rows="3" placeholder="Enter your full home address">{{ student['address'] or '' }}</textarea>
+                    
+                    <button type="submit" class="btn-save">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

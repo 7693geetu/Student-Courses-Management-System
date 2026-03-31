@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Checkout | EduStream</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #4361ee; --bg: #f8fafc; --text: #0f172a; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .checkout-card { background: white; width: 900px; border-radius: 30px; display: grid; grid-template-columns: 1fr 1.2fr; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.1); }
+        
+        /* Summary Side */
+        .summary { padding: 50px; background: #f1f5f9; border-right: 1px solid #e2e8f0; }
+        .price-box { background: white; padding: 20px; border-radius: 15px; border: 2px dashed var(--primary); margin: 20px 0; }
+        
+        /* Payment Side */
+        .payment { padding: 50px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 30px; background: #f1f5f9; padding: 5px; border-radius: 12px; }
+        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; background: none; color: #64748b; transition: 0.3s; }
+        .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        
+        .method-content { display: none; }
+        .method-content.active { display: block; }
+        
+        /* QR Styling */
+        .qr-container { text-align: center; }
+        .qr-img { width: 220px; height: 220px; margin-bottom: 15px; border: 1px solid #eee; padding: 10px; border-radius: 15px; background: white; }
+        
+        /* Form Styling */
+        label { display: block; margin-bottom: 5px; font-size: 0.75rem; font-weight: 800; color: #64748b; text-transform: uppercase; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-family: inherit; }
+        .pay-btn { width: 100%; padding: 15px; border: none; border-radius: 12px; background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%); color: white; font-weight: 800; font-size: 1rem; cursor: pointer; transition: transform 0.2s; }
+        .pay-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(67, 97, 238, 0.3); }
+    </style>
+</head>
+<body>
+
+<div class="checkout-card">
+    <!-- Left Side: Order Summary -->
+    <div class="summary">
+        <h2>Order Summary</h2>
+        <p style="color: #64748b;">You are enrolling in:</p>
+        <div class="price-box">
+            <h3 style="margin: 0;">{{ course.course_name }}</h3>
+            <h1 style="color: var(--primary); margin: 10px 0;">₹{{ course.price }}</h1>
+        </div>
+        <ul style="list-style: none; padding: 0; color: #64748b; font-size: 0.9rem; line-height: 2;">
+            <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Lifetime access</li>
+            <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Video lectures & PDF notes</li>
+            <li><i class="fas fa-check-circle" style="color: #10b981; margin-right: 8px;"></i> Completion Certificate</li>
+        </ul>
+    </div>
+
+    <!-- Right Side: Payment Form -->
+    <div class="payment">
+        <h3>Choose Payment Method</h3>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(event, 'qr')">UPI QR Code</button>
+            <button class="tab-btn" onclick="switchTab(event, 'card')">Debit/Credit Card</button>
+        </div>
+
+        <form id="paymentForm" action="{{ url_for('process_payment', course_id=course.id) }}" method="POST">
+            
+            <!-- Method 1: QR Section -->
+            <div id="qr" class="method-content active qr-container">
+                <!-- Using the file you uploaded: static/uploads/qrcodes/my_qr.jpeg -->
+                <img src="{{ url_for('static', filename='uploads/qrcodes/my_qr.jpeg') }}" class="qr-img" alt="Scan to Pay">
+                
+                <p><strong>Scan with GPay, PhonePe or Paytm</strong></p>
+                <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 20px;">
+                    Please scan and pay the amount. Once the transaction is complete from your app, click below.
+                </p>
+                <button type="submit" class="pay-btn">I've Scanned & Paid</button>
+            </div>
+
+            <!-- Method 2: Card Section -->
+            <div id="card" class="method-content">
+                <label>Cardholder Name</label>
+                <input type="text" name="card_name" placeholder="John Doe">
+                
+                <label>Card Number</label>
+                <input type="text" name="card_num" placeholder="4444 4444 4444 4444" maxlength="19">
+                
+                <div style="display: flex; gap: 15px;">
+                    <div style="flex: 1;">
+                        <label>Expiry Date</label>
+                        <input type="text" name="expiry" placeholder="MM/YY" maxlength="5">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>CVV Code</label>
+                        <input type="password" name="cvv" placeholder="***" maxlength="3">
+                    </div>
+                </div>
+                <button type="submit" class="pay-btn">Secure Pay Now</button>
+            </div>
+        </form>
+        
+        <div style="text-align: center; margin-top: 25px;">
+            <a href="{{ url_for('student_dashboard') }}" style="color: #64748b; text-decoration: none; font-size: 0.9rem; font-weight: 600;">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchTab(evt, methodName) {
+        // Hide all content
+        var content = document.getElementsByClassName("method-content");
+        for (var i = 0; i < content.length; i++) {
+            content[i].classList.remove("active");
+        }
+
+        // Deactivate all tabs
+        var tabs = document.getElementsByClassName("tab-btn");
+        for (var i = 0; i < tabs.length; i++) {
+            tabs[i].classList.remove("active");
+        }
+
+        // Show the specific tab and content
+        document.getElementById(methodName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+
+        // Logic to make card inputs required ONLY when the card tab is active
+        const cardInputs = document.querySelectorAll('#card input');
+        if (methodName === 'card') {
+            cardInputs.forEach(input => input.required = true);
+        } else {
+            cardInputs.forEach(input => input.required = false);
+        }
+    }
+</script>
+
+</body>
+</html>

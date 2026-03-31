@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Course Management System</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<!-- 🔥 NAVBAR -->
+<nav class="navbar">
+    <div class="brand">🎓 EduStream</div>
+    <div class="nav-links">
+        <a href="#">Home</a>
+        <a href="#about">About</a>
+        <a href="#why">Why Us</a>
+        <a href="#features">Features</a>
+        <a href="#courses">Courses</a>
+        <a href="{{ url_for('login') }}">Student Login</a>
+        <a href="{{ url_for('register') }}">Register</a>
+        
+        <a href="{{ url_for('admin_login') }}" class="admin-btn">Admin</a>
+        <button id="theme-toggle">🌙</button>
+    </div>
+</nav>
+
+
+<script>
+const toggleBtn = document.getElementById("theme-toggle");
+
+// check if button exists
+if (toggleBtn) {
+
+    // Load saved theme
+    if (localStorage.getItem("theme") === "light") {
+        document.body.classList.add("light-mode");
+        toggleBtn.innerText = "☀️";
+    }
+
+    toggleBtn.addEventListener("click", () => {
+        document.body.classList.toggle("light-mode");
+
+        if (document.body.classList.contains("light-mode")) {
+            localStorage.setItem("theme", "light");
+            toggleBtn.innerText = "☀️";
+        } else {
+            localStorage.setItem("theme", "dark");
+            toggleBtn.innerText = "🌙";
+        }
+    });
+}
+</script>
+<!-- 🔥 HERO SECTION -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>Learn. Grow. Succeed 🚀</h1>
+        <p>Manage courses, track progress, and enhance your learning experience with our smart platform.</p>
+
+        <div class="hero-buttons">
+            <a href="{{ url_for('login') }}" class="btn-primary">Get Started</a>
+            <a href="#courses" class="btn-secondary">Explore Courses</a>
+        </div>
+    </div>
+</section>
+
+<!-- 🔥 ABOUT SECTION -->
+<section id="about" class="about">
+    <h2>About Our Platform</h2>
+    <p>
+        Our Student Course Management System helps students learn efficiently 
+        and enables admins to manage courses seamlessly with smart tools.
+    </p>
+</section>
+
+<!-- 🔥 WHY CHOOSE US -->
+<section id="why" class="why">
+    <h2>Why Choose Us?</h2>
+
+    <div class="why-cards">
+        <div class="why-card">⚡ Fast Learning</div>
+        <div class="why-card">🎯 Goal Tracking</div>
+        <div class="why-card">📱 Mobile Friendly</div>
+    </div>
+</section>
+
+<!-- 🔥 FEATURES -->
+<section id="features" class="features">
+    <h2>✨ Key Features</h2>
+
+    <div class="feature-cards">
+        <div class="card">
+            <h3>📚 Course Management</h3>
+            <p>Easily enroll, manage and explore multiple courses.</p>
+        </div>
+
+        <div class="card">
+            <h3>📊 Progress Tracking</h3>
+            <p>Track your learning journey and achievements.</p>
+        </div>
+
+        <div class="card">
+            <h3>👨‍🏫 Admin Dashboard</h3>
+            <p>Manage users, courses, and system efficiently.</p>
+        </div>
+    </div>
+</section>
+
+<!-- 🔥 TESTIMONIALS -->
+<section class="testimonials">
+    <h2>What Students Say 💬</h2>
+
+    <div class="testimonial-card">
+        <p>"This platform helped me learn faster and track my progress!"</p>
+        <h4>- Student</h4>
+    </div>
+</section>
+
+<!-- 🔥 COURSES -->
+<section id="courses" class="courses">
+    <h2>📘 Popular Courses</h2>
+
+    <div class="course-grid">
+        <div class="course-card">Python Programming</div>
+        <div class="course-card">Web Development</div>
+        <div class="course-card">Machine Learning</div>
+    </div>
+</section>
+
+<!-- 🔥 CALL TO ACTION -->
+<section class="cta">
+    <h2>Start Your Learning Journey Today 🚀</h2>
+    <a href="{{ url_for('register') }}" class="btn-primary">Join Now</a>
+</section>
+
+<!-- 🔥 FOOTER -->
+<footer>
+    <p>© 2026 Student Course Management System</p>
+</footer>
+
+</body>
+</html>
